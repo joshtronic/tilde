@@ -1,6 +1,88 @@
 #!/usr/bin/env sh
 
-DOTFILES=~/.dotfiles/
+# .$ install joshtronic/dotfiles-test
+#     Pulls down dotfiles and installs them
+
+# .$ merge joshtronic/dotfiles-test [components]
+#     Merges from dotfiles to local, pushes back to repository
+#     Components - packages (all packages), apt, brew, gem, npm
+
+# .$ pull
+#     Pulls remote changes for the installed dotfiles and reruns installation
+
+# .$ push
+#     Commits and pushes local changes for the installed dotfiles
+
+DOTMONEY=~/.dotmoney
+
+# Checks that our directory exists, if not creates it
+if [ ! -d $DOTMONEY ];
+then
+	mkdir $DOTMONEY
+fi
+
+# Checks that a repository is present on install or merge
+if [ $1 == 'install' -o $1 == 'merge' ];
+then
+	if [ -z $2 ];
+	then
+		echo 'Error: Missing repository.'
+		exit
+	fi
+fi
+
+case $1 in
+	'install')
+		CLONE=$DOTMONEY/$2
+
+		if [ -d $CLONE ];
+		then
+			echo "Updating $2...";
+			cd $CLONE
+			git pull origin master
+			cd -
+		else
+			echo "Cloning $2...";
+			git clone git@github.com:$2.git $CLONE
+		fi
+
+		echo $CLONE > $DOTMONEY/installed
+
+		# TODO Run the installer
+		;;
+
+	'merge')
+		# Checks that we're not trying to merge our installed repo
+		;;
+
+	'pull')
+		echo "Updating $2...";
+		cd $CLONE
+		git pull origin master
+		cd -
+
+		# TODO Run the installer
+		;;
+
+	'push')
+		echo "Pushing $2...";
+		cd $CLONE
+		git push origin master
+		cd -
+		;;
+
+	*)
+		echo 'Usage: .$ [action] [repo] [options]'
+		echo
+		echo 'Examples:'
+		echo '    install [repo] - clones the repo and runs an installation'
+		echo '    merge [repo] [componet] - merges a repo with the installed repo'
+		echo '    pull - pulls changes for the installed repo and re-runs installation'
+		echo '    push - pushes changes for the installed repo'
+		;;
+esac
+
+exit
 
 # Installs dotfiles
 	# Clones repo from github to ~/.dotfiles/username/repo
@@ -9,7 +91,7 @@ DOTFILES=~/.dotfiles/
 		# aptitude
 		if [ -e /etc/debian_version ];
 		then
-			APTFILE=${DOTFILES}aptitude
+			APTFILE=${DOTFILES}apt
 
 			# Checks that we have an aptitude file
 			if [ -e $APTFILE ];
