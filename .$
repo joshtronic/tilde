@@ -1,0 +1,90 @@
+#!/usr/bin/env sh
+
+DOTFILES=~/.dotfiles/
+
+# Installs dotfiles
+	# Clones repo from github to ~/.dotfiles/username/repo
+	# Installs package managers and packages
+
+		# aptitude
+		if [ -e /etc/debian_version ];
+		then
+			APTFILE=${DOTFILES}aptitude
+
+			# Checks that we have an aptitude file
+			if [ -e $APTFILE ];
+			then
+				# Installs packages
+				echo 'Installing `aptitude` packages...'
+
+				cat $APTFILE | while read package
+				do
+					sudo aptitude install $package
+				done
+			fi
+		# brew
+		elif [ `uname` == 'Darwin' ];
+		then
+			BREWFILE=${DOTFILES}brew
+
+			# Checks that we have a brew file
+			if [ -e $BREWFILE ];
+			then
+				# Installs `brew` if not installed
+				if [ `which brew` == '' ];
+				then
+					echo 'Installing `brew`...'
+					ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+					mkdir -p ~/Library/LaunchAgents
+				fi
+
+				# Installs packages
+				echo 'Installing `brew` formulas...'
+
+				cat $BREWFILE | while read package
+				do
+					brew install $package
+				done
+			fi
+		fi
+
+		# TODO composer
+
+		# gem
+		GEMFILE=${DOTFILES}gem
+
+		# Checks that we have a gem file
+		if [ -e $GEMFILE ];
+		then
+			# Installs packages
+			echo 'Installing gems...'
+
+			cat $GEMFILE | while read package
+			do
+				sudo gem install $package
+			done
+		fi
+
+		# npm
+		NPMFILE=${DOTFILES}npm
+
+		# Checks that we have a gem file
+		if [ -e $NPMFILE ];
+		then
+			# Installs packages
+			echo 'Installing `npm` packages...'
+
+			cat $NPMFILE | while read package
+			do
+				npm install -g $package
+			done
+		fi
+
+		# TODO pip
+
+	# Symlinks files and directories or whatever we're going to do
+
+# Merge dotfiles
+	# Clones repo from github to ~/.dotfiles/username/repo
+	# ...
+	# Merges stuff in?
