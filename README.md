@@ -1,4 +1,4 @@
 dotmoney
 ========
 
-You're so money and you don't even know it.
+This dotfiles package manager is so awesome that it doesn't even make cents.
