@@ -68,10 +68,6 @@ install_dotfiles()
 					'brew')
 						brew install $package
 						;;
-				
-					# TODO
-					# 'composer')
-					# 	;;
 						
 					'gem')
 						sudo gem install $package
@@ -90,6 +86,59 @@ install_dotfiles()
 		done
 	fi
 
+	# TODO Sets up symlinks for bash
+
+	# Sets up symlinks for git
+	gitfiles=$dotfiles/git
+
+	if [ -d $gitfiles ];
+	then
+		gitconfig=$gitfiles/gitconfig
+
+		if [ -e $gitconfig ];
+		then
+			# TODO Check if it exists, prompt to remove or merge
+			ln -s $gitconfig ~/.gitconfig
+		fi
+
+		# TODO Hooks
+		# TODO Scripts
+	fi
+
+	# TODO Sets up symlinks for launchd
+
+	# TODO Sets up symlinks for mercurial
+
+	# Sets up symlinks for mutt
+	muttfiles=$dotfiles/mutt/
+
+	if [ -d $muttfiles ];
+	then
+		# TODO Check if directory exists, prompt to delete or merge
+		ln -s $muttfiles ~/.mutt
+	fi
+
+	# Sets up symlinks for vim
+	vimfiles=$dotfiles/vim/
+
+	if [ -d $vimfiles ];
+	then
+		echo $vimfiles
+
+		# TODO Check if directory exists, prompt to delete or merge
+		ln -s $vimfiles ~/.vim
+
+		# Creates the undodir if configured
+		undodir=`grep --no-filename 'undodir' $vimfiles -R`
+
+		if [[ $undodir != '' ]];
+		then
+			undodir=`echo $undodir | awk -F'=' '{print $2}'`
+			mkdir -p $undodir
+		fi
+	fi
+
+	# TODO Sets up symlinks for zsh
 }
 
 case $1 in
