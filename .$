@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # .$ install joshtronic/dotfiles-test
 #     Pulls down dotfiles and installs them
@@ -16,20 +16,60 @@
 dotmoney=~/.dotmoney
 
 # Checks that our directory exists, if not creates it
-if [ ! -d $dotmoney ];
+if [ ! -d $dotmoney ]
 then
 	mkdir $dotmoney
 fi
 
 # Checks that a repository is present on install or merge
-if [ $1 == 'install' -o $1 == 'merge' ];
+if [ $1 == 'install' -o $1 == 'merge' ]
 then
-	if [ -z $2 ];
+	if [ -z $2 ]
 	then
 		echo 'Error: Missing repository.'
-		exit
+		exit 1
 	fi
 fi
+
+install_file()
+{
+	# Checks if the source file exists
+	if [ -e $1 ]
+	then
+		link_file='y'
+
+		# Checks if the destination file exists
+		if [ -e $2 ]
+		then
+			echo -n "$2 already exists, replace? y or [n]: "
+			read -n 1 link_file
+			echo
+
+			# Prompts to remove it
+			if [ "$link_file" == 'y' ]
+			then
+				if [[ $3 == 'launchd' ]]
+				then
+					echo "Unloading $2..."
+					launchctl unload -w $2
+				fi
+
+				rm -rf $2
+			fi
+		fi
+
+		if [ "$link_file" == 'y' ]
+		then
+			ln -s $1 $2
+		fi
+
+		if [[ $3 == 'launchd' ]]
+		then
+			echo "Loading $2..."
+			launchctl load -w $2
+		fi
+	fi
+}
 
 install_dotfiles()
 {
@@ -37,122 +77,119 @@ install_dotfiles()
 	dotfiles=`cat $dotmoney/installed`
 	packages=$dotfiles/packages.yml
 
-	if [ -e $packages ];
+	if [ -e $packages ]
 	then
 		cat $packages | while read package
 		do
-			if [[ $package =~ :$ ]];
+			if [[ $package =~ :$ ]]
 			then
 				manager=`echo $package | tr -d ':'`
 
-				# Installs `brew` if on OSX and it's not installed
-				if [[ `uname` == 'Darwin' && `which brew` == '' ]];
+				if [ $manager == 'brew' ]
 				then
-					echo 'Installing `brew`...'
-					ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
-					mkdir -p ~/Library/LaunchAgents
+					if [ `uname` == 'Darwin' ] && ! hash brew 2>/dev/null
+					then
+						echo 'Installing `brew`...'
+						ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+					fi
+				fi
+
+				if hash $manager 2>/dev/null
+				then
+					manager_exists=true
+					echo "Manager \`$manager\` is found!"
+				else
+					manager_exists=false
+					echo "Manager \`$manager\` is missing, skipping packages"
 				fi
 
 				echo "Installing \`$manager\` packages..."
 			else
 				package=`echo $package | sed -e 's/-//'`
 
-				case $manager in
-					'apt')
-						if [ -e /etc/debian_version ];
-						then
+				if [[ $manager_exists == true && $package != '' ]]
+				then
+					case $manager in
+						'aptitude')
 							sudo aptitude install $package
-						fi
-						;;
+							;;
 
-					'brew')
-						brew install $package
-						;;
-						
-					'gem')
-						sudo gem install $package
-						;;
+						'brew')
+							brew install $package
+							;;
+							
+						'gem')
+							sudo gem install $package
+							;;
 
-					'npm')
-						npm install -g $package
-						;;
+						'npm')
+							npm install -g $package
+							;;
 
-					*)
-						echo "Error: Unsupported package manager - $manager"
-						exit;
-						;;
-				esac
+						*)
+							echo "Error: Unsupported package manager - $manager"
+							exit 1
+							;;
+					esac
+				fi
 			fi
 		done
 	fi
 
-	# TODO Sets up symlinks for bash
+	# Sets up symlinks
+	install_file $dotfiles/bash/bashrc   ~/.bashrc
+	install_file $dotfiles/git/gitconfig ~/.gitconfig
+	install_file $dotfiles/hg/hgrc       ~/.hgrc
+	install_file $dotfiles/mutt/         ~/.mutt
+	install_file $dotfiles/vim/          ~/.vim
+	install_file $dotfiles/zsh/zshrc     ~/.zshrc
 
-	# Sets up symlinks for git
-	gitfiles=$dotfiles/git
+	# TODO Check for vundle and install it
+	# TODO Set up zsh / omz theme
 
-	if [ -d $gitfiles ];
+	# Sets up symlinks for launchd
+	launchd_files=$dotfiles/launchd
+
+	if [[ `uname` == 'Darwin' && -e $launchd_files ]]
 	then
-		gitconfig=$gitfiles/gitconfig
+		launchagents=~/Library/LaunchAgents
 
-		if [ -e $gitconfig ];
+		if [ -d "$launchagents" ]
 		then
-			# TODO Check if it exists, prompt to remove or merge
-			ln -s $gitconfig ~/.gitconfig
+			mkdir -p $launchagents
 		fi
 
-		# TODO Hooks
-		# TODO Scripts
+		for f in $(ls -d $launchd_files/*)
+		do
+			launchagent=~/Library/LaunchAgents/`basename $f`
+			install_file $f $launchagent 'launchd'
+		done
 	fi
 
-	# TODO Sets up symlinks for launchd
+	# Creates the undodir if configured in vimrc
+	undodir=`grep --no-filename 'undodir' ~/.vim/vimrc -R`
 
-	# TODO Sets up symlinks for mercurial
-
-	# Sets up symlinks for mutt
-	muttfiles=$dotfiles/mutt/
-
-	if [ -d $muttfiles ];
+	if [[ $undodir != '' ]]
 	then
-		# TODO Check if directory exists, prompt to delete or merge
-		ln -s $muttfiles ~/.mutt
+		undodir=`echo $undodir | awk -F'=' '{print $2}'`
+
+		# TODO Checks if directory exists
+		mkdir -p $undodir
 	fi
-
-	# Sets up symlinks for vim
-	vimfiles=$dotfiles/vim/
-
-	if [ -d $vimfiles ];
-	then
-		echo $vimfiles
-
-		# TODO Check if directory exists, prompt to delete or merge
-		ln -s $vimfiles ~/.vim
-
-		# Creates the undodir if configured
-		undodir=`grep --no-filename 'undodir' $vimfiles -R`
-
-		if [[ $undodir != '' ]];
-		then
-			undodir=`echo $undodir | awk -F'=' '{print $2}'`
-			mkdir -p $undodir
-		fi
-	fi
-
-	# TODO Sets up symlinks for zsh
 }
 
 case $1 in
 	'install')
 		clone=$dotmoney/$2
 
-		if [ -d $clone ];
+		if [ -d $clone ]
 		then
-			echo "Updating $2...";
+			echo "Updating $2..."
 			cd $clone
 			git pull origin master
 			cd - > /dev/null
 		else
-			echo "Cloning $2...";
+			echo "Cloning $2..."
 			git clone git@github.com:$2.git $CLONE
 		fi
 
@@ -166,7 +203,7 @@ case $1 in
 		;;
 
 	'pull')
-		echo "Updating $2...";
+		echo "Updating $2..."
 		cd $clone
 		git pull origin master
 		cd -
@@ -175,7 +212,7 @@ case $1 in
 		;;
 
 	'push')
-		echo "Pushing $2...";
+		echo "Pushing $2..."
 		cd $clone
 		git push origin master
 		cd -
