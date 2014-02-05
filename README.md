@@ -1,4 +1,4 @@
-dotmoney
-========
+tilde
+=====
 
-This dotfiles package manager is so awesome that it doesn't even make cents.
+$HOME is where the heart it. Manage it with class.
