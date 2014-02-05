@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 
-# .$ install joshtronic/dotfiles-test
+# tilde install joshtronic/dotfiles-test
 #     Pulls down dotfiles and installs them
 
-# .$ merge joshtronic/dotfiles-test [components]
+# tilde merge joshtronic/dotfiles-test [components]
 #     Merges from dotfiles to local, pushes back to repository
 #     Components - packages (all packages), apt, brew, gem, npm
 
-# .$ pull
+# tilde pull
 #     Pulls remote changes for the installed dotfiles and reruns installation
 
-# .$ push
+# tilde push
 #     Commits and pushes local changes for the installed dotfiles
 
-dotmoney=~/.dotmoney
+tilde=~/.tilde
 
 # Checks that our directory exists, if not creates it
-if [ ! -d $dotmoney ]
+if [ ! -d $tilde ]
 then
-	mkdir $dotmoney
+	mkdir $tilde
 fi
 
 # Checks that a repository is present on install or merge
@@ -74,7 +74,7 @@ install_file()
 install_dotfiles()
 {
 	# Checks if we have a packages.yml
-	dotfiles=`cat $dotmoney/installed`
+	dotfiles=`cat $tilde/installed`
 	packages=$dotfiles/packages.yml
 
 	if [ -e $packages ]
@@ -180,7 +180,7 @@ install_dotfiles()
 
 case $1 in
 	'install')
-		clone=$dotmoney/$2
+		clone=$tilde/$2
 
 		if [ -d $clone ]
 		then
@@ -193,7 +193,7 @@ case $1 in
 			git clone git@github.com:$2.git $CLONE
 		fi
 
-		echo $clone > $dotmoney/installed
+		echo $clone > $tilde/installed
 
 		install_dotfiles
 		;;
