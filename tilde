@@ -115,7 +115,12 @@ install_dotfiles()
 							;;
 
 						'brew')
-							brew install $package
+							if [[ $package == */* ]]
+							then
+								brew tap $package
+							else
+								brew install $package
+							fi
 							;;
 							
 						'gem')
