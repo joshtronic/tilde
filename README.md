@@ -1,4 +1,4 @@
 tilde
 =====
 
-$HOME is where the heart it. Manage it with class.
+$HOME is where the heart is. Manage it with class.
