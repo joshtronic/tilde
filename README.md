@@ -48,6 +48,7 @@ If you are using the package management functionality and/or specifying addition
 
 	packages:
 	  brew:
+	    - Homebrew/homebrew-php
 	    - mysql
 	      - launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
 	      - launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
@@ -57,7 +58,7 @@ If you are using the package management functionality and/or specifying addition
 	  npm:
 	    - less@1.3
 
-Packages are listed in the `packages:` section of the file, grouped by package manager. `tilde` supports `apt` (`apt-get` or `aptitude`), `brew`, `gem` and `npm`, feel free to fork and add in your preferred package manager if it’s not there. After each package, you can list out any commands that need to be run after the package is installed. The packages themselves are installed in the order that they are listed in the file, be mindful of this to avoid any dependency problems. Also note that `npm` packages are installed with the `-g` flag to install them globally.
+Packages are listed in the `packages:` section of the file, grouped by package manager. `tilde` supports `apt` (`apt-get` or `aptitude`), `brew`, `gem` and `npm`, feel free to fork and add in your preferred package manager if it’s not there. After each package, you can list out any commands that need to be run after the package is installed. The packages themselves are installed in the order that they are listed in the file, be mindful of this to avoid any dependency problems. Please note that `brew` accepts both taps and packages and that `npm` packages are installed with the `-g` flag to install them globally.
 
 ## Usage
 
