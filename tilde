@@ -110,11 +110,11 @@ install_dotfiles()
 				if [[ $manager_exists == true && $package != '' ]]
 				then
 					case $manager in
-						'aptitude')
+						apt*)
 							sudo aptitude install $package
 							;;
 
-						'brew')
+						brew)
 							if [[ $package == */* ]]
 							then
 								brew tap $package
@@ -122,12 +122,12 @@ install_dotfiles()
 								brew install $package
 							fi
 							;;
-							
-						'gem')
+
+						gem)
 							sudo gem install $package
 							;;
 
-						'npm')
+						npm)
 							npm install -g $package
 							;;
 
@@ -148,6 +148,9 @@ install_dotfiles()
 	install_file $dotfiles/mutt/         ~/.mutt
 	install_file $dotfiles/vim/          ~/.vim
 	install_file $dotfiles/zsh/zshrc     ~/.zshrc
+
+	# TODO .ssh/config
+	# TODO .subversion/config
 
 	# TODO Check for vundle and install it
 	# TODO Set up zsh / omz theme
@@ -174,6 +177,7 @@ install_dotfiles()
 	# Creates the undodir if configured in vimrc
 	undodir=`grep --no-filename 'undodir' ~/.vim/vimrc -R`
 
+	# TODO Move this to inside of vimrc
 	if [[ $undodir != '' ]]
 	then
 		undodir=`echo $undodir | awk -F'=' '{print $2}'`
@@ -183,8 +187,10 @@ install_dotfiles()
 	fi
 }
 
+# Wondering if we really want be doing all of this, just a straight install is
+# most likely all that most people are going to use.
 case $1 in
-	'install')
+	install)
 		clone=$tilde/$2
 
 		if [ -d $clone ]
@@ -203,11 +209,11 @@ case $1 in
 		install_dotfiles
 		;;
 
-	'merge')
+	merge)
 		# Checks that we're not trying to merge our installed repo
 		;;
 
-	'pull')
+	pull)
 		echo "Updating $2..."
 		cd $clone
 		git pull origin master
@@ -216,7 +222,7 @@ case $1 in
 		install_dotfiles
 		;;
 
-	'push')
+	push)
 		echo "Pushing $2..."
 		cd $clone
 		git push origin master
@@ -224,11 +230,11 @@ case $1 in
 		;;
 
 	*)
-		echo 'Usage: .$ [action] [repo] [options]'
+		echo 'Usage: tilde [action] [repo] [options]'
 		echo
 		echo 'Examples:'
 		echo '    install [repo] - clones the repo and runs an installation'
-		echo '    merge [repo] [componet] - merges a repo with the installed repo'
+		echo '    merge [repo] [componet[/file]] - merges a repo with the installed repo'
 		echo '    pull - pulls changes for the installed repo and re-runs installation'
 		echo '    push - pushes changes for the installed repo'
 		;;
